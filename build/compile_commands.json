@@ -1,0 +1,26 @@
+[
+{
+  "directory": "G:/CA NHAN/DSA nang cao/external-merge-sort-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/sort.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\sort.dir\\src\\main.cpp.obj -c \"G:\\CA NHAN\\DSA nang cao\\external-merge-sort-engine\\src\\main.cpp\"",
+  "file": "G:/CA NHAN/DSA nang cao/external-merge-sort-engine/src/main.cpp",
+  "output": "CMakeFiles/sort.dir/src/main.cpp.obj"
+},
+{
+  "directory": "G:/CA NHAN/DSA nang cao/external-merge-sort-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/sort.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\sort.dir\\src\\ExternalMergeSorter.cpp.obj -c \"G:\\CA NHAN\\DSA nang cao\\external-merge-sort-engine\\src\\ExternalMergeSorter.cpp\"",
+  "file": "G:/CA NHAN/DSA nang cao/external-merge-sort-engine/src/ExternalMergeSorter.cpp",
+  "output": "CMakeFiles/sort.dir/src/ExternalMergeSorter.cpp.obj"
+},
+{
+  "directory": "G:/CA NHAN/DSA nang cao/external-merge-sort-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/sort.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\sort.dir\\src\\ReplacementSelection.cpp.obj -c \"G:\\CA NHAN\\DSA nang cao\\external-merge-sort-engine\\src\\ReplacementSelection.cpp\"",
+  "file": "G:/CA NHAN/DSA nang cao/external-merge-sort-engine/src/ReplacementSelection.cpp",
+  "output": "CMakeFiles/sort.dir/src/ReplacementSelection.cpp.obj"
+},
+{
+  "directory": "G:/CA NHAN/DSA nang cao/external-merge-sort-engine/build",
+  "command": "C:\\msys64\\mingw64\\bin\\g++.exe  @CMakeFiles/sort.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\sort.dir\\src\\BinaryFileIO.cpp.obj -c \"G:\\CA NHAN\\DSA nang cao\\external-merge-sort-engine\\src\\BinaryFileIO.cpp\"",
+  "file": "G:/CA NHAN/DSA nang cao/external-merge-sort-engine/src/BinaryFileIO.cpp",
+  "output": "CMakeFiles/sort.dir/src/BinaryFileIO.cpp.obj"
+}
+]
