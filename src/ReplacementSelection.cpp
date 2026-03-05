@@ -68,7 +68,7 @@ std::vector<std::string> ReplacementSelection::generateRuns(
             runFiles.push_back(runName);
         }
 
-        std::ofstream out(runName, std::ios::binary | std::ios::app);
+        std::ofstream out(runName, std::ios::binary);
 
         // ===== Block write buffer =====
         std::vector<double> outBuffer;

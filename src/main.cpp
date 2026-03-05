@@ -13,7 +13,6 @@ int main(int argc, char* argv[]) {
     int B = 3;
     size_t blockSize = 4096;
 
-    // ===== Parse Arguments =====
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
 
@@ -47,19 +46,14 @@ int main(int argc, char* argv[]) {
     std::cout << "Buffers (B): " << B << "\n";
     std::cout << "Block Size : " << blockSize << " bytes\n\n";
 
-    // ===== Phase 1: Replacement Selection =====
     auto runs = ReplacementSelection::generateRuns(
         input, B, blockSize, stats, verbose
     );
 
-    // ===== Phase 2: Multi-way Merge =====
     ExternalMergeSorter::multiWayMerge(
         runs, output, B, blockSize, stats, verbose
     );
 
-    // ===== Compute Theoretical IO =====
-
-    // Đếm tổng record
     double totalRecords = 0;
     std::ifstream in(input, std::ios::binary);
     double x;
@@ -81,7 +75,6 @@ int main(int argc, char* argv[]) {
 
     double theoretical_IO = 2 * N * (merge_passes + 1);
 
-    // ===== Print Statistics =====
     std::cout << "\n========== IO STATISTICS ==========\n";
     std::cout << "Disk Reads  : " << stats.disk_reads << "\n";
     std::cout << "Disk Writes : " << stats.disk_writes << "\n";
