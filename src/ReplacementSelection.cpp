@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <vector>
 
 std::vector<std::string> ReplacementSelection::generateRuns(
     const std::string& inputFile,
@@ -12,67 +13,61 @@ std::vector<std::string> ReplacementSelection::generateRuns(
 {
     std::vector<std::string> runFiles;
     std::ifstream in(inputFile, std::ios::binary);
-    if (!in) return runFiles;
+    if (!in || B < 2) return runFiles;
 
-    std::vector<double> heap;
-    std::vector<double> frozen;
+    const size_t recordsPerBlock = blockSize / sizeof(double);
+    const size_t heapCapacity = (B - 1) * recordsPerBlock;
 
-    // ===== BLOCK READ STATE =====
-    std::vector<char> buffer(blockSize);
+    // ===== 1 INPUT BUFFER PAGE =====
+    std::vector<double> inputBuffer(recordsPerBlock);
     size_t bufferPos = 0;
     size_t bufferCount = 0;
 
-    auto readNextBlock = [&]() -> bool {
-        in.read(buffer.data(), blockSize);
+    auto loadBlock = [&]() -> bool {
+        in.read(reinterpret_cast<char*>(inputBuffer.data()), blockSize);
         std::streamsize bytesRead = in.gcount();
         if (bytesRead <= 0) return false;
 
-        stats.addRead(); // 1 block = 1 IO
-
+        stats.addRead();
         bufferCount = bytesRead / sizeof(double);
         bufferPos = 0;
         return true;
     };
 
-    auto getNextValue = [&](double& value) -> bool {
+    auto getNextValue = [&](double& val) -> bool {
         if (bufferPos >= bufferCount) {
-            if (!readNextBlock()) return false;
+            if (!loadBlock()) return false;
         }
-
-        double* data = reinterpret_cast<double*>(buffer.data());
-        value = data[bufferPos++];
+        val = inputBuffer[bufferPos++];
         return true;
     };
 
-    // ===== Fill heap ban đầu =====
+    // ===== HEAP + FROZEN nằm trong (B-1) pages =====
+    std::vector<double> heap;
+    std::vector<double> frozen;
+
     double val;
-    while (heap.size() < (size_t)B && getNextValue(val)) {
+
+    // Fill heap tối đa heapCapacity
+    while (heap.size() < heapCapacity && getNextValue(val)) {
         heap.push_back(val);
     }
 
     std::make_heap(heap.begin(), heap.end(), std::greater<double>());
+
     int runIdx = 1;
-    stats.passes++; // Pass 1: Run generation
+    stats.passes++; // Initial run generation pass
 
-    while (!heap.empty() || !frozen.empty()) {
-
-        if (heap.empty()) {
-            heap = frozen;
-            frozen.clear();
-            std::make_heap(heap.begin(), heap.end(), std::greater<double>());
-            runIdx++;
-        }
+    while (!heap.empty()) {
 
         std::string runName = "run_" + std::to_string(runIdx) + ".bin";
-        if (runFiles.empty() || runFiles.back() != runName) {
-            runFiles.push_back(runName);
-        }
+        runFiles.push_back(runName);
 
         std::ofstream out(runName, std::ios::binary);
 
-        // ===== Block write buffer =====
-        std::vector<double> outBuffer;
-        size_t recordsPerBlock = blockSize / sizeof(double);
+        // ===== 1 OUTPUT BUFFER PAGE =====
+        std::vector<double> outputBuffer(recordsPerBlock);
+        size_t outPos = 0;
 
         while (!heap.empty()) {
 
@@ -80,12 +75,13 @@ std::vector<std::string> ReplacementSelection::generateRuns(
             double minVal = heap.back();
             heap.pop_back();
 
-            outBuffer.push_back(minVal);
+            outputBuffer[outPos++] = minVal;
 
-            if (outBuffer.size() == recordsPerBlock) {
-                out.write(reinterpret_cast<char*>(outBuffer.data()), blockSize);
-                stats.addWrite(); // 1 block write
-                outBuffer.clear();
+            if (outPos == recordsPerBlock) {
+                out.write(reinterpret_cast<char*>(outputBuffer.data()),
+                          blockSize);
+                stats.addWrite();
+                outPos = 0;
             }
 
             if (getNextValue(val)) {
@@ -93,17 +89,27 @@ std::vector<std::string> ReplacementSelection::generateRuns(
                     frozen.push_back(val);
                 } else {
                     heap.push_back(val);
-                    std::push_heap(heap.begin(), heap.end(), std::greater<double>());
+                    std::push_heap(heap.begin(), heap.end(),
+                                   std::greater<double>());
                 }
             }
         }
 
-        // Flush phần còn lại < 1 block
-        if (!outBuffer.empty()) {
-            out.write(reinterpret_cast<char*>(outBuffer.data()),
-                      outBuffer.size() * sizeof(double));
+        // Flush partial output page
+        if (outPos > 0) {
+            out.write(reinterpret_cast<char*>(outputBuffer.data()),
+                      outPos * sizeof(double));
             stats.addWrite();
-            outBuffer.clear();
+        }
+
+        // Chuyển frozen → heap cho run tiếp theo
+        heap = frozen;
+        frozen.clear();
+
+        if (!heap.empty()) {
+            std::make_heap(heap.begin(), heap.end(),
+                           std::greater<double>());
+            runIdx++;
         }
     }
 
