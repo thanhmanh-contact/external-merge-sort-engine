@@ -1,3 +1,0 @@
-G:/CA NHAN/DSA nang cao/external-merge-sort-engine/build/CMakeFiles/sort.dir
-G:/CA NHAN/DSA nang cao/external-merge-sort-engine/build/CMakeFiles/edit_cache.dir
-G:/CA NHAN/DSA nang cao/external-merge-sort-engine/build/CMakeFiles/rebuild_cache.dir
