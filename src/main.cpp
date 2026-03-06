@@ -46,6 +46,10 @@ int main(int argc, char* argv[]) {
     std::cout << "Block Size : " << blockSize << " bytes\n\n";
     std::cout << "Input File : " << input << "\n";
     std::cout << "Output File: " << output << "\n\n";
+    std::cout << "Data: ";
+    BinaryFileIO::printDoubleFile(input);
+    std::cout << "\n";
+    std::cout << "==============================================\n";
 
     auto runs = ReplacementSelection::generateRuns(
         input, B, blockSize, stats, verbose
