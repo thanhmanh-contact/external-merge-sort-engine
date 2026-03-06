@@ -16,7 +16,7 @@ std::vector<std::string> ReplacementSelection::generateRuns(
     if (!in || B < 2) return runFiles;
 
     const size_t recordsPerBlock = blockSize / sizeof(double);
-    const size_t heapCapacity = (B - 1) * recordsPerBlock;
+    const size_t heapCapacity = (B - 2) * recordsPerBlock;
 
     // ===== 1 INPUT BUFFER PAGE =====
     std::vector<double> inputBuffer(recordsPerBlock);
@@ -86,7 +86,8 @@ std::vector<std::string> ReplacementSelection::generateRuns(
 
             if (getNextValue(val)) {
                 if (val < minVal) {
-                    frozen.push_back(val);
+                    if (heap.size() + frozen.size() < heapCapacity)
+                        frozen.push_back(val);
                 } else {
                     heap.push_back(val);
                     std::push_heap(heap.begin(), heap.end(),
@@ -103,7 +104,7 @@ std::vector<std::string> ReplacementSelection::generateRuns(
         }
 
         // Chuyển frozen → heap cho run tiếp theo
-        heap = frozen;
+        heap.swap(frozen);
         frozen.clear();
 
         if (!heap.empty()) {

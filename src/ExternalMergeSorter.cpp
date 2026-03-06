@@ -19,7 +19,7 @@ void ExternalMergeSorter::multiWayMerge(
         return;
     }
 
-    const int fanIn = B - 1;   // B-1 input buffers
+    const int fanIn = B - 1;   
     const size_t recordsPerBlock = blockSize / sizeof(double);
 
     int pass = 0;

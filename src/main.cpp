@@ -34,7 +34,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // ===== Generate sample input nếu chưa có =====
     if (!std::ifstream(input, std::ios::binary)) {
         BinaryFileIO::generateSmallInput(input);
     }
@@ -45,6 +44,8 @@ int main(int argc, char* argv[]) {
     std::cout << "========== EXTERNAL MERGE SORT ENGINE ==========\n";
     std::cout << "Buffers (B): " << B << "\n";
     std::cout << "Block Size : " << blockSize << " bytes\n\n";
+    std::cout << "Input File : " << input << "\n";
+    std::cout << "Output File: " << output << "\n\n";
 
     auto runs = ReplacementSelection::generateRuns(
         input, B, blockSize, stats, verbose
@@ -62,8 +63,7 @@ int main(int argc, char* argv[]) {
     }
 
     size_t recordsPerBlock = blockSize / sizeof(double);
-    double N = std::ceil(totalRecords / recordsPerBlock);  // số block
-
+    double N = std::ceil(totalRecords / recordsPerBlock);
     double fan_in = B - 1;
     double merge_passes = 0;
 
