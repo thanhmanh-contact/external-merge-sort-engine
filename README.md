@@ -60,6 +60,19 @@ Mọi thao tác đọc/ghi đều thực hiện theo đơn vị **Block** để 
 
 ---
 
+## Demo Execution
+
+Dưới đây là kết quả chạy thực tế với file dữ liệu mẫu:
+
+![Execution Screenshot](/examples/output_screen.JPG)
+
+**Phân tích kết quả:**
+* **B = 5, BlockSize = 24**: Cấu hình bộ nhớ tối thiểu để kiểm tra tính đúng đắn.
+* **Replacement Selection**: Tạo ra các Run có độ dài vượt trội so với kích thước Heap (9 records), giúp giảm số lượng Initial Runs xuống còn 3.
+* **I/O Efficiency**: Tổng số lượt I/O thực tế (66) khớp với dự tính lý thuyết (~64), chứng minh cơ chế quản lý buffer hoạt động hiệu quả.
+
+---
+
 ## Điểm mạnh của thiết kế
 * **Tối ưu RAM:** Tận dụng tối đa $B$ buffer cho từng mục đích cụ thể.
 * **Run dài hơn:** Replacement Selection giúp giảm số lượng run ban đầu, từ đó giảm số vòng merge.
