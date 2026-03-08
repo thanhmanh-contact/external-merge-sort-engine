@@ -1,245 +1,69 @@
-External Merge Sort – Cấu trúc RAM và cơ chế I/O
+# 🚀 External Merge Sort – Memory Structure & I/O Mechanism
 
-Project này cài đặt External Merge Sort sử dụng block-based I/O và Replacement Selection để tạo các run ban đầu.
+Project này cài đặt thuật toán **External Merge Sort** sử dụng kỹ thuật **Block-based I/O** và **Replacement Selection** để tối ưu hóa việc tạo các run ban đầu và giảm thiểu chi phí truy cập đĩa cứng.
 
-Các record trong file là số thực double (8 bytes) và việc đọc/ghi disk được thực hiện theo block.
+---
 
-Mô hình bộ nhớ (Memory Model)
+## 📋 Mô hình bộ nhớ (Memory Model)
 
-Thuật toán giả định rằng trong RAM có:
+Thuật toán giả định hệ thống có các tham số cấu hình sau:
 
-B buffer page.
+| Tham số | Ý nghĩa |
+| :--- | :--- |
+| **B** | Tổng số Buffer Page có trong RAM |
+| **blockSize** | Kích thước của mỗi block (bytes) |
+| **recordSize** | Kích thước 1 bản ghi (mặc định `double` = 8 bytes) |
+| **recordsPerBlock** | Số lượng record trong 1 block ($blockSize / 8$) |
 
-Mỗi buffer page có kích thước:
+---
 
-blockSize bytes
+## 🛠 Cấu trúc RAM theo giai đoạn
 
-Mỗi record có kích thước:
+RAM được phân bổ linh hoạt tùy theo đặc thù của từng giai đoạn thuật toán.
 
-sizeof(double) = 8 bytes
+### 1. Replacement Selection (Tạo run ban đầu)
+Mục tiêu: Tạo ra các run có độ dài trung bình $\approx 2 \times$ kích thước heap.
 
-Do đó số record trong một block là:
+**Phân bổ Buffer (Tổng B):**
+* **1 Input Buffer:** Đọc dữ liệu từ Disk.
+* **B - 2 Buffers:** Dành cho Heap & Frozen records.
+* **1 Output Buffer:** Ghi dữ liệu xuống Disk.
 
-recordsPerBlock = blockSize / 8
+> **Cơ chế Heap & Frozen:**
+> * **Min-Heap:** Lưu trữ record thuộc run hiện tại. Kích thước tối đa: $heapCapacity = (B - 2) \times recordsPerBlock$.
+> * **Frozen Records:** Nếu `newValue < lastOutput`, record đó bị "đóng băng" cho run tiếp theo.
+> * **Quy tắc:** $\text{Heap} + \text{Frozen} \leq heapCapacity$.
 
-Cấu trúc RAM
+---
 
-RAM được chia khác nhau tùy theo giai đoạn của thuật toán.
+### 2. Multi-way Merge (Hợp nhất Run)
+Sau khi có các run, thuật toán thực hiện trộn chúng lại thành một file duy nhất đã sắp xếp.
 
-1. Replacement Selection (Tạo run ban đầu)
+**Phân bổ Buffer (Tổng B):**
+* **B - 1 Input Buffers:** Mỗi buffer quản lý dữ liệu cho 1 run (Fan-in = $B-1$).
+* **1 Output Buffer:** Chứa kết quả sau khi so sánh giữa các run.
 
-Trong giai đoạn tạo run ban đầu, RAM được chia như sau:
+**Quy trình Merge:**
+1. Nạp block đầu tiên của mỗi run vào các Input Buffer.
+2. Chọn record nhỏ nhất trong các buffer -> Đưa vào Output Buffer.
+3. Nếu một Input Buffer trống: Đọc block tiếp theo từ run đó (`stats.addRead()`).
+4. Nếu Output Buffer đầy: Ghi block xuống Disk (`stats.addWrite()`).
 
-1 buffer input
-B-2 buffer heap + frozen
-1 buffer output
+---
 
-Tổng cộng:
+## 📊 Mô hình I/O và Thống kê
+Mọi thao tác đọc/ghi đều thực hiện theo đơn vị **Block** để tối ưu tốc độ phần cứng.
 
-B buffer
+* **Disk Read:** Thực hiện khi Input Buffer hết dữ liệu.
+* **Disk Write:** Thực hiện khi Output Buffer đầy hoặc kết thúc một run.
+* **Công thức chi phí:** $$\text{Total I/O} = \text{Disk Reads} + \text{Disk Writes}$$
 
-Input Buffer
+---
 
-Input buffer dùng để đọc block từ disk.
+## ✨ Điểm mạnh của thiết kế
+* **Tối ưu RAM:** Tận dụng tối đa $B$ buffer cho từng mục đích cụ thể.
+* **Run dài hơn:** Replacement Selection giúp giảm số lượng run ban đầu, từ đó giảm số vòng merge.
+* **Hiệu suất cao:** Sử dụng cấu trúc Min-Heap với độ phức tạp $O(\log n)$ để xử lý dữ liệu trong RAM.
 
-Luồng dữ liệu:
-
-Disk → Input Buffer
-
-Khi input buffer đọc hết dữ liệu, block tiếp theo sẽ được đọc từ disk.
-
-Heap (Min Heap)
-
-Heap lưu các record có thể thuộc run hiện tại.
-
-Kích thước tối đa của heap:
-
-heapCapacity = (B - 2) × recordsPerBlock
-
-Heap được tổ chức dưới dạng min heap để luôn lấy được record nhỏ nhất nhanh nhất.
-
-Hai thao tác chính:
-
-pop_heap → lấy record nhỏ nhất
-push_heap → thêm record mới
-
-Độ phức tạp:
-
-O(log n)
-
-Frozen Records
-
-Nếu record mới đọc từ input nhỏ hơn record vừa ghi ra output, record đó không thể nằm trong run hiện tại.
-
-Khi đó record sẽ được frozen và dùng cho run tiếp theo.
-
-Quy tắc:
-
-if newValue < lastOutput
-→ frozen
-
-else
-→ đưa vào heap
-
-Frozen records dùng chung vùng bộ nhớ với heap.
-
-Giới hạn bộ nhớ:
-
-heap + frozen ≤ heapCapacity
-
-Output Buffer
-
-Record lấy từ heap sẽ được ghi vào output buffer.
-
-Luồng dữ liệu:
-
-Heap → Output Buffer → Disk
-
-Khi output buffer đầy:
-
-ghi block ra disk
-stats.addWrite()
-
-Luồng hoạt động của Replacement Selection
-
-Thuật toán hoạt động như sau:
-
-Đọc dữ liệu ban đầu từ input và đưa vào heap cho đến khi heap đầy.
-
-Lặp lại các bước sau:
-
-Lấy record nhỏ nhất từ heap
-
-Ghi vào output buffer
-
-Đọc record tiếp theo từ input
-
-Nếu:
-
-record ≥ lastOutput
-→ đưa vào heap
-
-Nếu:
-
-record < lastOutput
-→ đưa vào frozen
-
-Khi heap rỗng:
-
-run hiện tại kết thúc
-
-heap ← frozen
-frozen ← rỗng
-
-Bắt đầu tạo run mới.
-
-Độ dài run trung bình
-
-Replacement Selection giúp tạo run dài hơn kích thước RAM.
-
-Trung bình:
-
-run length ≈ 2 × heap size
-
-tức là run có thể dài khoảng gấp đôi bộ nhớ sử dụng cho heap.
-
-2. Multi-way Merge
-
-Sau khi tạo các run ban đầu, thuật toán thực hiện multi-way merge để trộn các run lại thành một file đã sắp xếp.
-
-Cấu trúc RAM trong giai đoạn merge:
-
-B-1 input buffer
-1 output buffer
-
-Tổng cộng:
-
-B buffer
-
-Fan-in
-
-Fan-in của thuật toán là:
-
-fan-in = B - 1
-
-Nghĩa là có thể merge B-1 run cùng lúc.
-
-Ví dụ:
-
-B = 5
-
-4 input run
-1 output buffer
-
-→ merge 4-way
-
-Quy trình merge
-
-Mỗi run sẽ có một input buffer.
-
-Bước đầu tiên:
-
-đọc block đầu tiên của mỗi run vào buffer.
-
-Sau đó lặp lại:
-
-Chọn record nhỏ nhất trong các input buffer
-
-Ghi record đó vào output buffer
-
-Di chuyển con trỏ trong buffer đó
-
-Nếu buffer đọc hết:
-
-đọc block tiếp theo từ run đó.
-
-Khi output buffer đầy:
-
-ghi block ra disk.
-
-Mô hình I/O
-
-Mọi thao tác đọc và ghi disk đều thực hiện theo block.
-
-Đọc:
-
-stats.addRead()
-
-Ghi:
-
-stats.addWrite()
-
-Nhờ đó chương trình có thể thống kê chi phí I/O:
-
-Total IO = Disk Reads + Disk Writes
-
-Tóm tắt
-
-External Merge Sort gồm hai giai đoạn chính.
-
-Giai đoạn 1 – Replacement Selection
-
-Tạo các run đã được sắp xếp.
-
-RAM sử dụng:
-
-1 input buffer
-1 output buffer
-B-2 buffer cho heap
-
-Giai đoạn 2 – Multi-way Merge
-
-Merge các run lại thành file đã sắp xếp.
-
-RAM sử dụng:
-
-B-1 input buffer
-1 output buffer
-
-Thiết kế này giúp:
-
-tận dụng tối đa bộ nhớ
-
-giảm số lần truy cập disk
-
-tối ưu chi phí I/O cho dữ liệu lớn.
+---
+*Dự án hỗ trợ sắp xếp các tệp dữ liệu lớn vượt quá dung lượng RAM thực tế.*
