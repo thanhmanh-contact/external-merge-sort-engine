@@ -12,7 +12,6 @@ Thuật toán giả định hệ thống có các tham số cấu hình sau:
 | :--- | :--- |
 | **B** | Tổng số Buffer Page có trong RAM |
 | **blockSize** | Kích thước của mỗi block (bytes) |
-| **recordSize** | Kích thước 1 bản ghi (mặc định `double` = 8 bytes) |
 | **recordsPerBlock** | Số lượng record trong 1 block ($blockSize / 8$) |
 
 ---
