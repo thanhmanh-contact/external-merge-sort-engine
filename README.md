@@ -11,8 +11,8 @@ Thuật toán giả định hệ thống có các tham số cấu hình sau:
 | Tham số | Ý nghĩa |
 | :--- | :--- |
 | **B** | Tổng số Buffer Page có trong RAM |
-| **blockSize** | Kích thước của mỗi block (bytes) |
-| **recordsPerBlock** | Số lượng record trong 1 block ($blockSize / 8$) |
+| **blockSize** | Kích thước của mỗi block (bytes), là bội của kích thước sector(512 bytes), 4KB |
+| **recordsPerBlock** | Số lượng record trong 1 block |
 
 ---
 
@@ -66,7 +66,7 @@ Dưới đây là kết quả chạy thực tế với file dữ liệu mẫu:
 ![Execution Screenshot](/examples/output_screen.JPG)
 
 **Phân tích kết quả:**
-* **B = 5, BlockSize = 24**: Cấu hình bộ nhớ tối thiểu để kiểm tra tính đúng đắn.
+* **B = 5, BlockSize = 24**: Cấu hình bộ nhớ tối thiểu để kiểm tra tính đúng đắn(chọn 24 bytes để dễ demo).
 * **Replacement Selection**: Tạo ra các Run có độ dài vượt trội so với kích thước Heap (9 records), giúp giảm số lượng Initial Runs xuống còn 3.
 * **I/O Efficiency**: Tổng số lượt I/O thực tế (66) khớp với dự tính lý thuyết (~64), chứng minh cơ chế quản lý buffer hoạt động hiệu quả.
 
